@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>倾覆余量台 · 这东西会不会被推倒、被吹倒</title>
+<meta name="description" content="把「立着的东西会不会被推倒/吹倒」算成一组可复核的数字：临界倾角、临界推力、撞倒所需最小速度、临界风速，以及要改哪一项、改到多少。全部自己填，页面不联网。">
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#fff; --ink:#16202c; --ink2:#4a5a6e; --ink3:#7d8b9c;
+    --line:#e2e8f0; --line2:#cbd5e1; --brand:#1d4ed8; --brand2:#eef2ff;
+    --good:#0f7b52; --goodbg:#e8f6ef; --warn:#9a5b00; --warnbg:#fff5e5; --bad:#b42318; --badbg:#fdeceb;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+  .app{max-width:1280px;margin:0 auto;padding:22px 18px 60px;display:grid;grid-template-columns:392px minmax(0,1fr);gap:18px;align-items:start}
+  .app > *{min-width:0}
+  header.top{grid-column:1/-1;padding:4px 2px 0}
+  h1{margin:0 0 6px;font-size:26px;letter-spacing:.2px}
+  .lede{margin:0;color:var(--ink2);max-width:860px}
+  .badges{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px}
+  .badge{font-size:12px;padding:3px 9px;border-radius:999px;background:#fff;border:1px solid var(--line2);color:var(--ink2)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 16px 14px;margin:0 0 14px;box-shadow:0 1px 2px rgba(16,32,64,.04)}
+  .card h2{margin:0 0 12px;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .card h3{margin:16px 0 8px;font-size:14px;color:var(--ink2)}
+  .tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--brand2);color:var(--brand);border:1px solid #dbe4ff}
+  .tag.gray{background:#f1f5f9;color:var(--ink2);border-color:var(--line2)}
+  .field{margin-bottom:11px}
+  .field label{display:block;font-size:13px;color:var(--ink2);margin-bottom:4px}
+  .field label .sub{color:var(--ink3);font-size:12px}
+  input[type=text],select{width:100%;padding:8px 10px;border:1px solid var(--line2);border-radius:9px;font-size:14px;background:#fff;color:var(--ink);font-variant-numeric:tabular-nums}
+  input[type=text]:focus,select:focus{outline:2px solid #c7d2fe;border-color:var(--brand)}
+  input.bad{border-color:var(--bad);background:var(--badbg)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg button{font-size:12px;padding:5px 9px;border-radius:999px}
+  .seg button.on{background:var(--brand2);border-color:#c7d2fe;color:var(--brand);font-weight:600}
+  .chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2)}
+  .chk input{margin:0}
+  button{font:inherit;font-size:13px;padding:8px 12px;border-radius:9px;border:1px solid var(--line2);background:#fff;color:var(--ink);cursor:pointer}
+  button:hover{background:#f8fafc}
+  button.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+  button.primary:hover{background:#1a45c0}
+  button.tiny{font-size:12px;padding:4px 8px}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .footnote{font-size:12px;color:var(--ink3);margin-top:8px;line-height:1.55}
+  table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+  th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th{color:var(--ink2);font-weight:600;background:#fafbfd;font-size:12px}
+  th:first-child,td:first-child{text-align:left;white-space:normal;word-break:keep-all}
+  tbody tr.pick{cursor:pointer}
+  tbody tr.pick:hover{background:#f8fafc}
+  tbody tr.sel{background:var(--brand2)}
+  tbody tr.sel td{border-bottom-color:#c7d2fe}
+  tr.sum td{font-weight:700;background:#f8fafc}
+  .tw{overflow-x:auto;max-width:100%}
+  table.wrap th,table.wrap td{white-space:normal;word-break:keep-all}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:10px}
+  .kpi{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+  .kpi .k{font-size:12px;color:var(--ink2);margin-bottom:2px}
+  .kpi .v{font-size:20px;font-weight:700;letter-spacing:-.2px;word-break:keep-all}
+  .kpi .s{font-size:11px;color:var(--ink3);word-break:keep-all}
+  .concl{background:var(--brand2);border:1px solid #dbe4ff;border-radius:10px;padding:12px 14px;font-size:15px;line-height:1.7}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:4px}
+  .metric{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0}
+  .metric .mk{font-size:12px;color:var(--ink2)}
+  .metric .mv{font-size:18px;font-weight:700;word-break:keep-all}
+  .metric .ms{font-size:11px;color:var(--ink3);word-break:keep-all}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .pill.ok{background:var(--goodbg);color:var(--good)}
+  .pill.tight{background:var(--warnbg);color:var(--warn)}
+  .pill.fail{background:var(--badbg);color:var(--bad)}
+  .vd{color:var(--good)} .vt{color:var(--warn)} .vf{color:var(--bad)}
+  .bar{height:8px;border-radius:6px;background:#eef2f7;overflow:hidden;min-width:52px}
+  .bar > i{display:block;height:100%;border-radius:6px}
+  ul.tight{margin:4px 0 0;padding-left:20px}
+  ul.tight li{margin:5px 0;line-height:1.6}
+  ol.tight{margin:4px 0 0;padding-left:20px}
+  ol.tight li{margin:5px 0;line-height:1.6}
+  .item{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;background:#fcfdff}
+  .itemhead{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .itemhead input.nm{flex:1 1 130px;min-width:0;font-weight:600}
+  .grid8{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
+  .grid8 label{display:block;font-size:11.5px;color:var(--ink3);line-height:1.4}
+  .grid8 input{width:100%;padding:6px 8px;font-size:13px}
+  .warnbox{background:var(--warnbg);border:1px solid #f2d9ad;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:13px;color:#6b3f00}
+  .errbox{background:var(--badbg);border:1px solid #f3c6c2;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:13px;color:#7a1a12}
+  .okbox{background:var(--goodbg);border:1px solid #bfe4d1;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:13px;color:#0b5c3e}
+  .slices{display:grid;grid-template-columns:1fr;gap:8px}
+  .slice{font-size:12.5px;color:var(--ink2);border-left:3px solid var(--line2);padding-left:9px}
+  .slice b{color:var(--ink)}
+  .muted{color:var(--ink3)}
+  .sticky{position:sticky;top:14px;max-height:calc(100vh - 24px);overflow-y:auto}
+  @media (max-width:980px){
+    .app{grid-template-columns:minmax(0,1fr)}
+    .sticky{position:static;max-height:none;overflow:visible}
+    table{font-size:12.5px}
+    th,td{padding:6px 7px}
+  }
+  @media (max-width:620px){
+    .app{padding:16px 12px 48px}
+    h1{font-size:22px}
+    .kpi .v{font-size:18px}
+    .grid8{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}
+  }
+  input[type=file]{max-width:100%;min-width:0}
+  .btns > *{min-width:0}
+  @media (max-width:400px){
+    .grid8{grid-template-columns:repeat(2,minmax(0,1fr))}
+    input[type=file]{width:124px;font-size:11px}
+    .row2{grid-template-columns:minmax(0,1fr)}
+    .btns{gap:6px}
+    .btns button{font-size:12px;padding:7px 9px}
+    .seg button{font-size:11.5px;padding:5px 7px}
+  }
+  @media print{
+    body{background:#fff}
+    .sticky{position:static;max-height:none;overflow:visible}
+    .app{grid-template-columns:minmax(0,1fr);max-width:none}
+    .no-print{display:none !important}
+    .card{break-inside:avoid;box-shadow:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>倾覆余量台</h1>
+    <p class="lede">书架、电视柜、婴儿床、落地灯、花架、立式指示牌——立着的东西被推一下、被风吹一下，到底会不会翻？本页把它算成一组可复核的数字：<b>倾斜多少度会翻</b>、<b>多大的推力会推翻</b>、<b>一次撞击要多大速度</b>、<b>几级风会吹倒</b>，以及要达标该改哪一项、改到多少。</p>
+    <div class="badges">
+      <span class="badge">力矩平衡 + 势能势垒 + 风压，全部可复算</span>
+      <span class="badge">六件家居默认样例是虚构示例</span>
+      <span class="badge">不联网 · 不上传 · 不做产品合格判定 · 不引标准条款</span>
+    </div>
+  </header>
+
+  <div class="sticky">
+    <form id="form" onsubmit="return false">
+      <div class="card">
+        <h2>全局口径 <span class="tag">所有件共用</span></h2>
+        <div class="row2">
+          <div class="field"><label>力施加高度 z（cm）<span class="sub">人手大致推在哪</span></label><input type="text" id="pz"></div>
+          <div class="field"><label>预想推力 F（N）<span class="sub">要扛住多大</span></label><input type="text" id="pF"></div>
+        </div>
+        <div class="seg" id="fSeg" style="margin:-4px 0 10px">
+          <button type="button" data-f="50">按 50 N</button>
+          <button type="button" data-f="100">按 100 N</button>
+          <button type="button" data-f="200">按 200 N</button>
+          <button type="button" data-f="500">按 500 N</button>
+        </div>
+        <div class="row2">
+          <div class="field"><label>摩擦系数 μ<span class="sub">滑动判据</span></label><input type="text" id="pmu"></div>
+          <div class="field"><label>目标安全系数<span class="sub">本页自定分档</span></label><input type="text" id="psf"></div>
+        </div>
+        <div class="field"><label>固定件安装高度（cm）<span class="sub">算固定件要多大拉力</span></label><input type="text" id="pzf"></div>
+        <p class="footnote">F 与 z 是<b>假设值</b>，不是实测：填「你担心有人施加多大推力」和「他大致推在多高」。安全系数是本页的分档口径（≥ sf 记「稳」），不是任何标准条款。</p>
+      </div>
+
+      <div class="card">
+        <h2>风口径 <span class="tag gray">只对勾了「吹得到风」的件生效</span></h2>
+        <div class="field"><label class="chk"><input type="checkbox" id="wOn"> 计算风口径</label></div>
+        <div class="row2">
+          <div class="field"><label>目标风速（m/s）</label><input type="text" id="wvT"></div>
+          <div class="field"><label>阻力系数 Cd</label><input type="text" id="wcd"></div>
+        </div>
+        <div class="seg" id="vSeg">
+          <button type="button" data-v="10.8">6 级</button>
+          <button type="button" data-v="13.9">7 级</button>
+          <button type="button" data-v="17.2">8 级</button>
+          <button type="button" data-v="24.5">10 级</button>
+          <button type="button" data-v="32.7">12 级</button>
+        </div>
+        <p class="footnote">风速按钮取的是各级风的下限（6 级 10.8 / 7 级 13.9 / 8 级 17.2 / 10 级 24.5 / 12 级 32.7 m/s）。<b>保守假设</b>：风向取最不利方向，迎风面取「垂直风向的支撑尺寸 × 物品高度」，风压沿高度均匀、形心取 H/2。</p>
+      </div>
+
+      <div class="card">
+        <h2>物品清单 <span class="tag gray" id="rowCount"></span></h2>
+        <div id="rows"></div>
+        <div class="btns">
+          <button type="button" id="btnAddRow">加一件</button>
+          <button type="button" id="btnDup">复制最后一件</button>
+        </div>
+        <p class="footnote">「支撑宽 / 深」填<b>有效支撑边界</b>的跨度（四脚家具取四脚外沿构成的矩形）；「重心偏置」是重心地面投影相对支撑面中心的偏移，填 0 表示居中。</p>
+      </div>
+
+      <div class="card">
+        <h2>场景</h2>
+        <div class="field"><label>一键换上（会覆盖当前输入）</label><select id="scenario"></select></div>
+        <p class="footnote">场景只改数字。默认、内置场景与页面示例<b>都是虚构示例</b>，不是任何真实物品的实测数据。</p>
+      </div>
+
+      <div class="card no-print">
+        <h2>保存与导出</h2>
+        <div class="btns">
+          <button type="button" class="primary" id="btnSave">保存到本机</button>
+          <button type="button" id="btnLoad">读取本机</button>
+          <button type="button" id="btnReset">恢复默认示例</button>
+        </div>
+        <div class="btns">
+          <button type="button" id="btnCsv">导出 CSV</button>
+          <button type="button" id="btnMd">导出 Markdown</button>
+          <button type="button" id="btnJson">导出 JSON 备份</button>
+          <button type="button" id="btnPng">导出结果卡 PNG</button>
+        </div>
+        <div class="btns">
+          <label class="chk" style="font-size:13px"><span>导入备份</span><input type="file" id="importFile" accept=".json,application/json"></label>
+          <button type="button" id="btnPrint">打印视图</button>
+        </div>
+        <p class="footnote" id="saveState">改动会即时重算；「保存到本机」用的是浏览器本地存储（只在这台机器上）。</p>
+      </div>
+    </form>
+  </div>
+
+  <main>
+    <div class="card">
+      <h2>结论 <span class="tag gray" id="verdictTag"></span></h2>
+      <div id="errors"></div>
+      <div class="concl" id="headline"></div>
+      <div class="kpis" id="kpis" style="margin-top:12px"></div>
+      <div id="warnBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>逐件排行 <span class="tag gray">按裕度从小到大</span></h2>
+      <div class="tw">
+        <table id="rankTable">
+          <thead><tr>
+            <th>物品</th><th>最弱方向</th><th>最短支撑距离</th><th>临界倾角</th>
+            <th>临界推力</th><th>撞倒所需速度</th><th>临界风速</th><th>裕度</th><th>判定</th>
+          </tr></thead>
+          <tbody id="rankBody"></tbody>
+        </table>
+      </div>
+      <p class="footnote">「裕度」= 临界值 ÷ 目标值，取「推」与「风」两个口径里更小的那个；≥ <span id="sfNote"></span> 记「稳」、1～该值记「勉强」、&lt; 1 记「会倒」。点任意一行看该件的详解。</p>
+    </div>
+
+    <div class="card">
+      <h2>选中件详解 <span class="tag" id="detailName"></span></h2>
+      <div id="detailBody"></div>
+    </div>
+
+    <div class="card">
+      <h2>值得记住的三条 <span class="tag gray">都能在下面的表里复核</span></h2>
+      <div class="slices" id="insights"></div>
+    </div>
+
+    <div class="card">
+      <h2>下一步</h2>
+      <ol class="tight" id="steps"></ol>
+    </div>
+
+    <div class="card">
+      <h2>这份账不算什么</h2>
+      <ul class="tight" id="limits"></ul>
+    </div>
+
+    <div class="card">
+      <h2>结构自检 <span class="tag gray" id="checkTag"></span></h2>
+      <ul class="tight" id="checks"></ul>
+      <p class="footnote">这些是每次重算都会跑的一致性与单调性检查：力矩平衡、动能=势能增量、临界推力与重心高度无关、撞倒速度与质量无关、支撑边越长越稳、反推回代达标、判定分档一致、结果里没有 NaN / Infinity。它们是<b>本页内部一致性</b>的证据，不等于物理结论已被外部实验证实。</p>
+    </div>
+  </main>
+</div>
+<script>/*CORE*/</script>
+<script>/*UI*/</script>
+</body>
+</html>
